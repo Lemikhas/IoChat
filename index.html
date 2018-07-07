@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <title>IO Chat</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            body{
+                margin-top:50px; 
+            }
+            #messageArea{
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="userFormArea" class="row">
+                <div class="col-md-12">
+                    <form>
+                        <div class="form-group">
+                            <label>Enter Username</label>
+                            <input class="form-control" id="username" />
+                            <br/>
+                            <input type="button" onclick="userFormSubmit()" class="btn btn-primary" value="Login"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row" id="messageArea">
+                <div class="col-md-4">
+                    <div class="card">
+                        <h3>Online Users</h3>
+                        <ul class="list-group" id="users"></ul>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="chat" id="chat"></div> 
+                    <form>
+                        <div class="form-group">
+                            <label>Enter Message</label>
+                            <textarea class="form-control" id="message"></textarea>
+                            <br/>
+                            <input type="button" onclick="messageFormSubmit()" class="btn btn-primary" value="Send Message"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+                var socket = io.connect();
+                var message = document.getElementById('message');
+                var chat = document.getElementById('chat');
+                var messageArea = document.getElementById('messageArea');
+                var userFormArea = document.getElementById('userFormArea');
+                var users = document.getElementById('users');
+                var username = document.getElementById('username');
+
+                function messageFormSubmit(e){
+                    if (message.value != '') {
+                        socket.emit('send message', message.value);
+                        message.value = '';
+                    }
+                }
+
+                socket.on('new message', (data)=>{
+                    chat.innerHTML += '<div class="card"><strong>'+data.user+': </strong>'+data.msg+'</div>';
+                });
+
+                function userFormSubmit(e){
+                    socket.emit('new user', username.value, (data)=>{
+                        if(data){
+                            userFormArea.style.display = 'none';
+                            messageArea.style.display = 'flex';
+                        }
+                    });
+                    username.value = '';
+                }
+
+                socket.on('get users', (data)=>{
+                    var html = '';
+                    for (let i = 0; i < data.length; i++) {
+                        html += '<li class="list-group-item">'+data[i]+'</li>'; 
+                    }
+                    users.innerHTML = html;
+                });
+                socket.on('get messages', (data)=>{
+                    var html = '';
+                    for (let i = 0; i < data.length; i++) {
+                        html += '<div class="card"><strong>'+data[i].user+': </strong>'+data[i].msg+'</div>'; 
+                    }
+                    chat.innerHTML = html;
+                });
+        </script>
+    </body>
+</html>
