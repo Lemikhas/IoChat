@@ -8,8 +8,8 @@
   },
   "author": "JKacperski",
   "license": "ISC",
-  "dependencies":{
-    "socket.io": "*",
-    "express": "*"
+  "dependencies": {
+    "express": "*",
+    "socket.io": "*"
   }
 }
